@@ -59,7 +59,7 @@ public final class Constants {
     public static final double kTrenchVelocity = 36;
 
     //Intake
-    public static final double kRollerSpeed = 0.85;
+    public static final double kRollerSpeed = 0.999;
     public static final double kPivotSpeed = 0.2;
     //Spindexer
     public static final double kSpindexerSpeed = 0.40;
