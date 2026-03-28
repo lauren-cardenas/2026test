@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 
@@ -17,7 +18,16 @@ public class IntakeSubsystem extends SubsystemBase {
 
   private final DutyCycleOut m_rollerRequest = new DutyCycleOut(0.0);
 
-  public IntakeSubsystem() {}
+  public IntakeSubsystem() {
+    TalonFXConfiguration config = new TalonFXConfiguration();
+
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.StatorCurrentLimit = 50;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = 50;
+
+    m_rollerMotor.getConfigurator().apply(config);
+  }
 
   @Override
   public void periodic() {

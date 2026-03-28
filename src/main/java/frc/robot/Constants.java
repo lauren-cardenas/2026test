@@ -55,14 +55,15 @@ public final class Constants {
     public static final double kShooterSpeed = 0.60; //manual speed
     public static final double kTargetVelocity = 8; //target velocity for motion magic in rps
     public static final double kMaxSpeed = 20; //in rps (?)
-    public static final double kAutoVelocity = 15;
+    public static final double kAutoVelocity = 14.5;
+    public static final double kTrenchVelocity = 36;
 
     //Intake
-    public static final double kRollerSpeed = 1.0;
+    public static final double kRollerSpeed = 0.85;
     public static final double kPivotSpeed = 0.2;
     //Spindexer
-    public static final double kSpindexerSpeed = 0.6;
-    public static final double kTransitionSpeed = .9;
+    public static final double kSpindexerSpeed = 0.40;
+    public static final double kTransitionSpeed = .85;
   }
 
   public static class MotorConstants {

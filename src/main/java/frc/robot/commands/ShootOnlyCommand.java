@@ -4,33 +4,28 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.ShooterSubsystem;
-import frc.robot.subsystems.SpindexerSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class ShooterCommand extends Command {
-  /** Creates a new ShooterCommand. */
+public class ShootOnlyCommand extends Command {
+  /** Creates a new ShootOnlyCommand. */
   ShooterSubsystem shooter;
-  SpindexerSubsystem spinner;
   double velocity;
-  boolean finishes;
-  
-  public ShooterCommand(double velocity, ShooterSubsystem shooter, SpindexerSubsystem spinner) {
+  Boolean finishes;
+
+  public ShootOnlyCommand(double velocity, ShooterSubsystem shooter) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.shooter = shooter;
-    this.spinner = spinner;
     this.velocity = velocity;
     this.finishes = true;
-    addRequirements(shooter,spinner);
+    addRequirements(shooter);
   }
 
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
     this.shooter.setVelocity(velocity);
-    this.spinner.fuelRun();
 
   }
 
@@ -38,13 +33,14 @@ public class ShooterCommand extends Command {
   @Override
   public void execute() {
     this.shooter.motionMagicSetVelocity();
+
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
     this.shooter.motionMagicSetVelocity();
-    this.spinner.stopFuel();
+
   }
 
   // Returns true when the command should end.

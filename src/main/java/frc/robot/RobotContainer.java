@@ -17,21 +17,18 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.OperatorConstants;
-import frc.robot.Constants.PositionConstants;
 import frc.robot.Constants.SpeedConstants;
-import frc.robot.commands.PivotCommand;
+import frc.robot.commands.ShootOnlyCommand;
 import frc.robot.commands.ShooterCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
-//import frc.robot.subsystems.LimelightSubsystem;
+import frc.robot.subsystems.LimelightSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SpindexerSubsystem;
 import frc.robot.subsystems.TurretSubsystem;
@@ -48,7 +45,8 @@ public class RobotContainer {
 
   private final SendableChooser<Command> autoChooser;
 
- private final CommandXboxController m_driverController =
+ @SuppressWarnings("unused")
+private final CommandXboxController m_driverController =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
  private final CommandXboxController m_operatorController =
       new CommandXboxController(OperatorConstants.kOperatorControllerPort);
@@ -72,6 +70,12 @@ public class RobotContainer {
 
     public RobotContainer() {
 
+      NamedCommands.registerCommand("Shoot", new ShooterCommand(SpeedConstants.kAutoVelocity,m_shooterSubsystem,m_spindexerSubsystem));
+      NamedCommands.registerCommand("IntakeDown", new RunCommand(() -> m_pivotSubsystem.manualPivot(SpeedConstants.kPivotSpeed), m_pivotSubsystem));
+      NamedCommands.registerCommand("Rollers", new RunCommand(() -> m_intakeSubsystem.runRollers(SpeedConstants.kRollerSpeed), m_intakeSubsystem));
+      NamedCommands.registerCommand("StopShoot", new ShooterCommand(0.1, m_shooterSubsystem, m_spindexerSubsystem));
+      NamedCommands.registerCommand("StopIntake", new RunCommand(() -> m_pivotSubsystem.manualPivot(0), m_pivotSubsystem));
+      NamedCommands.registerCommand("StopRollers", new RunCommand(() -> m_intakeSubsystem.runRollers(0), m_intakeSubsystem));
       
         configureBindings();
 
@@ -80,9 +84,7 @@ public class RobotContainer {
       CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
 
       
-      NamedCommands.registerCommand("Shoot", new ShooterCommand(SpeedConstants.kAutoVelocity,m_shooterSubsystem,m_spindexerSubsystem));
-      NamedCommands.registerCommand("IntakeDown", new RunCommand(() -> m_pivotSubsystem.manualPivot(SpeedConstants.kPivotSpeed), m_pivotSubsystem));
-      NamedCommands.registerCommand("Rollers", new RunCommand(() -> m_intakeSubsystem.runRollers(SpeedConstants.kRollerSpeed), m_intakeSubsystem));
+      
       
     }
 
@@ -125,7 +127,7 @@ public class RobotContainer {
          /******************Driver Controller*************************/
 
     //Intake Rollers In
-    m_operatorController.leftTrigger().whileTrue(new RunCommand(() -> m_intakeSubsystem.runRollers(SpeedConstants.kRollerSpeed), m_intakeSubsystem))
+    m_operatorController.x().whileTrue(new RunCommand(() -> m_intakeSubsystem.runRollers(SpeedConstants.kRollerSpeed), m_intakeSubsystem))
       .onFalse(new InstantCommand(() -> m_intakeSubsystem.runRollers(0)));
     //Intake Rollers Out
     m_operatorController.b().whileTrue(new RunCommand(() -> m_intakeSubsystem.runRollers(-SpeedConstants.kRollerSpeed), m_intakeSubsystem))
@@ -145,31 +147,42 @@ public class RobotContainer {
       /*****************Operator Controller***********************/
 
     //Motion Magic Shooter
-    /*double shooterVelocity = m_limelightSubsystem.getSpeedShooter();
-    m_operatorController.rightTrigger().whileTrue(new ShooterCommand(shooterVelocity, m_shooterSubsystem, m_spindexerSubsystem));*/
-
+    
     m_operatorController.y().whileTrue(new RunCommand(() -> m_pivotSubsystem.manualPivot(-SpeedConstants.kPivotSpeed), m_intakeSubsystem))
       .onFalse(new InstantCommand(() -> m_pivotSubsystem.manualPivot(0.0)));
 
     m_operatorController.a().whileTrue(new RunCommand(() -> m_pivotSubsystem.manualPivot(SpeedConstants.kPivotSpeed), m_intakeSubsystem))
       .onFalse(new InstantCommand(() -> m_pivotSubsystem.manualPivot(0.0)));
 
-    m_operatorController.rightTrigger().whileTrue(new ShooterCommand(18 + m_operatorController.getLeftY(), m_shooterSubsystem, m_spindexerSubsystem)) //FIXME Need limelight speed calculation  
+    m_operatorController.rightTrigger().whileTrue(new ShootOnlyCommand(SpeedConstants.kTrenchVelocity, m_shooterSubsystem))
       .onFalse(new InstantCommand(() -> m_shooterSubsystem.manualSpeed(0.1)))
       .onFalse(new InstantCommand(() -> m_spindexerSubsystem.stopFuel()));
 
-    m_operatorController.x().whileTrue(new ShooterCommand(SpeedConstants.kMaxSpeed + m_operatorController.getLeftY(), m_shooterSubsystem, m_spindexerSubsystem))
+    /*
+    m_operatorController.rightTrigger().whileTrue(new ShooterCommand(SpeedConstants.kTrenchVelocity, m_shooterSubsystem, m_spindexerSubsystem)) //FIXME Need limelight speed calculation  
+      .onFalse(new InstantCommand(() -> m_shooterSubsystem.manualSpeed(0.1)))
+      .onFalse(new InstantCommand(() -> m_spindexerSubsystem.stopFuel()));*/
+
+    /*m_operatorController.rightTrigger().whileTrue(new ShooterCommand(m_limelightSubsystem.getSpeed(), m_shooterSubsystem, m_spindexerSubsystem)) //FIXME Need limelight speed calculation  
+      .onFalse(new InstantCommand(() -> m_shooterSubsystem.manualSpeed(0.1)))
+      .onFalse(new InstantCommand(() -> m_spindexerSubsystem.stopFuel()));*/
+
+    m_operatorController.leftTrigger().whileTrue(new ShooterCommand(SpeedConstants.kMaxSpeed + m_operatorController.getLeftY(), m_shooterSubsystem, m_spindexerSubsystem))
       .onFalse(new InstantCommand(() -> m_shooterSubsystem.manualSpeed(0)))
       .onFalse(new InstantCommand(() -> m_spindexerSubsystem.stopFuel()));
 
-    m_operatorController.leftBumper().whileTrue(new RunCommand(() -> m_turretSubsystem.turnLeft(Constants.TurretConstants.tempSpeed)))
+    m_operatorController.povLeft().whileTrue(new RunCommand(() -> m_turretSubsystem.turnLeft(Constants.TurretConstants.tempSpeed)))
       .onFalse(new InstantCommand(() -> m_turretSubsystem.stop()));
 
-    m_operatorController.rightBumper().whileTrue(new RunCommand(() -> m_turretSubsystem.turnRight(-Constants.TurretConstants.tempSpeed)))
+    m_operatorController.povRight().whileTrue(new RunCommand(() -> m_turretSubsystem.turnRight(-Constants.TurretConstants.tempSpeed)))
           .onFalse(new InstantCommand(() -> m_turretSubsystem.stop()));
     
+    m_operatorController.leftBumper().whileTrue(new RunCommand(() -> m_spindexerSubsystem.fuelRun()))
+      .onFalse(new InstantCommand(() -> m_spindexerSubsystem.stopFuel()));
+
         }
         
+        @SuppressWarnings("unused")
         private Object m_turretSubsystem(double d) {
           // TODO Auto-generated method stub
           throw new UnsupportedOperationException("Unimplemented method 'm_turretSubsystem'");

@@ -41,49 +41,6 @@
               }
             ]
           }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "RCenter"
-          }
-        },
-        {
-          "type": "race",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "IntakeDown"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "Rollers"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 0.25
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "RCenterUp"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "RCenterLeftReturn"
-          }
         }
       ]
     }

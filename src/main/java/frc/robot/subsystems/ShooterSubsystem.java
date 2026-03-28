@@ -4,17 +4,12 @@
 
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -43,9 +38,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
     //set slot 0 gains
     var slot0Configs = config.Slot0;
-    slot0Configs.kS = 0.25; //Add kS V output to overcome static friction, default 0.25
-    slot0Configs.kV = 0.26; //A velocity target of 1 rps results in kV V output, default 0.12
-    slot0Configs.kA = 0.54; //An acceleration of 1 rps/s requires kA V output, default 0.01
+    slot0Configs.kS = 0.1; //Add kS V output to overcome static friction, default 0.25
+    slot0Configs.kV = 0.135; //A velocity target of 1 rps results in kV V output, default 0.12
+    slot0Configs.kA = 0.0; //An acceleration of 1 rps/s requires kA V output, default 0.01
     slot0Configs.kI = 0; //no output for integrated error
     slot0Configs.kD = 0; //no output for error derivative
 
@@ -55,13 +50,14 @@ public class ShooterSubsystem extends SubsystemBase {
 
     config.withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Coast));
 
-    config2.withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.CounterClockwise_Positive));
+    config2.withMotorOutput(new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive));
 
     //set slot 0 gains
-    var slot0Configs2 = config.Slot0;
-    slot0Configs2.kS = 0.25; //Add kS V output to overcome static friction, default 0.25
-    slot0Configs2.kV = 0.26; //A velocity target of 1 rps results in kV V output, default 0.12
-    slot0Configs2.kA = 0.54; //An acceleration of 1 rps/s requires kA V output, default 0.01
+    var slot0Configs2 = config2.Slot0;
+    slot0Configs2.kS = 0.2; //Add kS V output to overcome static friction, default 0.25
+    slot0Configs2.kV = 0.135; //A velocity target of 1 rps results in kV V output, default 0.12
+    slot0Configs2.kP = 0.0;
+    slot0Configs2.kA = 0.0; //An acceleration of 1 rps/s requires kA V output, default 0.01
     slot0Configs2.kI = 0; //no output for integrated error
     slot0Configs2.kD = 0; //no output for error derivative
 
@@ -69,10 +65,10 @@ public class ShooterSubsystem extends SubsystemBase {
     mm2.MotionMagicAcceleration = 400; //Target acceleration of 400 rps/s (0.25 seconds to max)
     mm2.MotionMagicJerk = 4000; //Target jerk of 4000 rps/s/s (0.1 seconds)
 
-    config.withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Coast));
+    config2.withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Coast));
 
     shooterTopMotor.getConfigurator().apply(config);
-    shooterBottomMotor.getConfigurator().apply(config);
+    shooterBottomMotor.getConfigurator().apply(config2);
     
     //shooterBottomMotor.setControl(new Follower(shooterTopMotor.getDeviceID(), MotorAlignmentValue.Opposed));
   }
@@ -80,10 +76,10 @@ public class ShooterSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    SmartDashboard.putNumber("Launcher Top RPM", shooterTopMotor.getVelocity().getValueAsDouble());
-    SmartDashboard.putNumber("Launcher Bottom RPM", shooterBottomMotor.getVelocity().getValueAsDouble());
-    SmartDashboard.putNumber("Launcher SetPoint", setPoint);
-    SmartDashboard.putBoolean("Launcher Ready", isAtVelocity());
+    SmartDashboard.putNumber("Launcher Top RPS", shooterTopMotor.getVelocity().getValueAsDouble());
+    SmartDashboard.putNumber("Launcher Bottom RPS", shooterBottomMotor.getVelocity().getValueAsDouble());
+    //SmartDashboard.putNumber("Launcher SetPoint", setPoint);
+    //SmartDashboard.putBoolean("Launcher Ready", isAtVelocity());
 
   }
 
