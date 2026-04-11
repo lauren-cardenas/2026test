@@ -155,21 +155,26 @@ private final CommandXboxController m_driverController =
       .onFalse(new InstantCommand(() -> m_pivotSubsystem.manualPivot(0.0)));
 
     m_operatorController.rightTrigger().whileTrue(new ShootOnlyCommand(SpeedConstants.kTrenchVelocity, m_shooterSubsystem))
+      .onFalse(new InstantCommand(() -> m_shooterSubsystem.manualSpeed(0.1)));
+      //.onFalse(new InstantCommand(() -> m_spindexerSubsystem.stopFuel()));
+
+    m_operatorController.leftTrigger().whileTrue(new ShootOnlyCommand(SpeedConstants.kMaxSpeed, m_shooterSubsystem))
+      .onFalse(new InstantCommand(() -> m_shooterSubsystem.manualSpeed(0.1)));
+
+    
+    /*m_operatorController.rightTrigger().whileTrue(new ShooterCommand(SpeedConstants.kTrenchVelocity, m_shooterSubsystem, m_spindexerSubsystem)) //FIXME Need limelight speed calculation  
       .onFalse(new InstantCommand(() -> m_shooterSubsystem.manualSpeed(0.1)))
-      .onFalse(new InstantCommand(() -> m_spindexerSubsystem.stopFuel()));
+      .onFalse(new InstantCommand(() -> m_spindexerSubsystem.stopFuel())); */
 
     /*
-    m_operatorController.rightTrigger().whileTrue(new ShooterCommand(SpeedConstants.kTrenchVelocity, m_shooterSubsystem, m_spindexerSubsystem)) //FIXME Need limelight speed calculation  
+    final double speed = m_limelightSubsystem.getSpeed();
+    m_operatorController.rightBumper().whileTrue(new ShooterCommand(speed, m_shooterSubsystem, m_spindexerSubsystem)) //FIXME Need limelight speed calculation  
       .onFalse(new InstantCommand(() -> m_shooterSubsystem.manualSpeed(0.1)))
       .onFalse(new InstantCommand(() -> m_spindexerSubsystem.stopFuel()));*/
 
-    /*m_operatorController.rightTrigger().whileTrue(new ShooterCommand(m_limelightSubsystem.getSpeed(), m_shooterSubsystem, m_spindexerSubsystem)) //FIXME Need limelight speed calculation  
-      .onFalse(new InstantCommand(() -> m_shooterSubsystem.manualSpeed(0.1)))
-      .onFalse(new InstantCommand(() -> m_spindexerSubsystem.stopFuel()));*/
-
-    m_operatorController.leftTrigger().whileTrue(new ShooterCommand(SpeedConstants.kMaxSpeed + m_operatorController.getLeftY(), m_shooterSubsystem, m_spindexerSubsystem))
-      .onFalse(new InstantCommand(() -> m_shooterSubsystem.manualSpeed(0)))
-      .onFalse(new InstantCommand(() -> m_spindexerSubsystem.stopFuel()));
+    m_operatorController.rightBumper().whileTrue(new ShootOnlyCommand(SpeedConstants.kAutoVelocity, m_shooterSubsystem))
+      .onFalse(new InstantCommand(() -> m_shooterSubsystem.manualSpeed(0)));
+      //.onFalse(new InstantCommand(() -> m_spindexerSubsystem.stopFuel()));
 
     m_operatorController.povLeft().whileTrue(new RunCommand(() -> m_turretSubsystem.turnLeft(Constants.TurretConstants.tempSpeed)))
       .onFalse(new InstantCommand(() -> m_turretSubsystem.stop()));

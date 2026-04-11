@@ -40,7 +40,7 @@ public class PivotSubsystem extends SubsystemBase {
     //cfg.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
     //cfg.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0.0;
     cfg.CurrentLimits.StatorCurrentLimitEnable = true;
-    cfg.CurrentLimits.StatorCurrentLimit = 60; //Output Current Limit
+    cfg.CurrentLimits.StatorCurrentLimit = 40; //Output Current Limit
     //cfg.CurrentLimits.SupplyTimeThreshold = 5; //Amont of time to allow current over supply limit
     cfg.CurrentLimits.SupplyCurrentLimitEnable = true;
     cfg.CurrentLimits.SupplyCurrentLimit = 60; //Supply Current Limit
@@ -56,7 +56,7 @@ public class PivotSubsystem extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
 
-    SmartDashboard.putNumber("Arm Position", m_pivotMotor.getRotorPosition().getValueAsDouble());
+    //SmartDashboard.putNumber("Arm Position", m_pivotMotor.getRotorPosition().getValueAsDouble());
   }
 
   public void motionMagicSetPosition(){

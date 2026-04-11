@@ -19,8 +19,12 @@ public class LimelightSubsystem extends SubsystemBase {
 
   private RawFiducial[] rawfids;
   private final Set<Integer> vID = new LinkedHashSet<Integer>(Set.of(7, 26, 5, 24, 2, 18));
-  private final double shooterHeight = 29.75;
-  private final double hubHeight = 72.0;
+  private static final double shooterHeight = 29.75;
+  private static final double hubHeight = 72.0;
+  private static final double SHOOT_ANGLE = 62;
+  private static final double TAG_OFFSET = 23.5;
+  private static final double TURRET_DEADBAND = 3;
+  private static final double ARB_NUMBER = -6;
   private ArrayDeque<Double> speedHist = new ArrayDeque<>();
   private ArrayDeque<Double> turHist = new ArrayDeque<>();
 
@@ -38,18 +42,28 @@ public class LimelightSubsystem extends SubsystemBase {
   }
 
   public double getXLeg(double hy, double hi) {
-    return Math.sqrt(Math.pow(hy, 2) - Math.pow(hi, 2));
-  }
+  double val = (hy * hy) - (hi * hi);
+  if (val <= 0 || Double.isNaN(val)) return 0.0;
+  return Math.sqrt(val);
+}
 
   public double getDistance(double distToCam, double angle) {
-    angle = Math.abs(angle);
-    double targetHeight = inToMeters(23.5); // meters
+  if (Double.isNaN(distToCam) || Double.isInfinite(distToCam)) return 0.0;
 
-    return Math.sqrt(Math.pow(distToCam, 2) + Math.pow(targetHeight, 2) + 2 * targetHeight * distToCam * Math.cos(Math.toRadians(angle)));
+  double targetHeight = inToMeters(TAG_OFFSET);
+  angle = Math.toRadians(Math.abs(angle));
+
+  double val = distToCam * distToCam +
+  targetHeight * targetHeight +
+  2 * targetHeight * distToCam * Math.cos(angle);
+
+  if (val <= 0 || Double.isNaN(val)) return 0.0;
+
+  return Math.sqrt(val);
   }
 
   public double getVelo(double dis, double drag) {
-    double denom = 2 * Math.pow(Math.cos(Math.toRadians(62)), 2) * (dis * Math.tan(Math.toRadians(62)) - (inToMeters(hubHeight - shooterHeight)));
+    double denom = 2 * Math.pow(Math.cos(Math.toRadians(SHOOT_ANGLE)), 2) * (dis * Math.tan(Math.toRadians(SHOOT_ANGLE)) - (inToMeters(hubHeight - shooterHeight)));
     if (denom <= 0) return 0;
 
     return drag * Math.sqrt((9.80667 * Math.pow(dis, 2)) / denom);
@@ -64,18 +78,41 @@ public class LimelightSubsystem extends SubsystemBase {
     return in * .0254;
   }
 
-   public double getAngletoCenter(double tx, double dis) {
-    return Math.asin((Math.sin((Math.toRadians(tx))) / dis) * inToMeters(23.5));
+  public double getAngletoCenter(double tx, double dis) {
+  double offset = inToMeters(TAG_OFFSET);
+
+  if (Double.isNaN(dis) || Double.isInfinite(dis) || dis <= 1e-6) {
+    return 0.0;
   }
 
+  double val = (Math.sin(Math.toRadians(tx)) * offset) / dis;
 
-  public double getTagYaw(int id)
-  {
-    LimelightHelpers.SetFiducialIDFiltersOverride(name, new int[]{id});
+  val = Math.max(-1.0, Math.min(1.0, val));
+
+  double result = Math.asin(val);
+
+  if (Double.isNaN(result) || Double.isInfinite(result)) {
+    return 0.0;
+  }
+
+  return result;
+}
+
+
+  public double getTagYaw(int id) {
 
     Pose3d tagPose = LimelightHelpers.getTargetPose3d_CameraSpace(name);
-    return Units.radiansToDegrees(tagPose.getRotation().getY());
-  }
+    if (tagPose == null) {
+        return 0.0;
+    }
+
+    double yaw = Units.radiansToDegrees(tagPose.getRotation().getY());
+    if (Double.isNaN(yaw) || Double.isInfinite(yaw)) {
+        return 0.0;
+    }
+
+    return yaw;
+}
 
   public double getSpeed() {
     double vel = 0.0;
@@ -103,9 +140,9 @@ public class LimelightSubsystem extends SubsystemBase {
     speedHist.clear();
   }
 
-  /*public double getTurretSpeed()
+  public double getTurretSpeed()
   {
-    double vel = -67;
+    double vel = ARB_NUMBER; // this number is just a place holder telling it the velocity is not found from the april tags
     if(rawfids != null && rawfids.length != 0)
     {
       vel = .2;
@@ -114,14 +151,12 @@ public class LimelightSubsystem extends SubsystemBase {
         for(RawFiducial fid : rawfids)
         {
           if(fid.id == id)
-          {
+          { // iterate through all of the ids that are valid and in the vID list
             double yaw = fid.txnc;
-            double offset = Math.toDegrees(getAngletoCenter(Math.abs(getTagYaw(fid.id) - fid.txnc), getDistance(getXLeg(fid.distToCamera, hubHeight - shooterHeight), getTagYaw(fid.id) - fid.txnc)));
-            System.out.println("angle: " + Math.abs(getTagYaw(fid.id)));
-            System.out.println("distance true: " + getDistance(getXLeg(fid.distToCamera, hubHeight - shooterHeight), getTagYaw(fid.id) - fid.txnc));
+            double offset = Math.toDegrees(getAngletoCenter(Math.abs(getTagYaw(fid.id) - fid.txnc), getDistance(getXLeg(fid.distToCamera, inToMeters(hubHeight - shooterHeight)), getTagYaw(fid.id) - fid.txnc)));
             if(yaw > 0) offset *= -1;
-            if(yaw + offset > 3) vel *= -1;
-            else if(yaw + offset < 3) vel = 0;
+            if(yaw + offset > TURRET_DEADBAND) vel *= -1;
+            else if(yaw + offset < TURRET_DEADBAND) vel = 0;
           }
         } 
       }
@@ -130,15 +165,16 @@ public class LimelightSubsystem extends SubsystemBase {
     if(turHist.size() > 5) turHist.removeLast();
     for(double oldvel : turHist)
     {
-      if(oldvel != -67) return oldvel;
+      if(oldvel != ARB_NUMBER) return oldvel;
     }
+    //maybe turn the turret 180 degrees when you dont see an april tag?
     return 0.0;
   }
 
   public void clearTurHist()
   {
     turHist.clear();
-  }*/
+  }
 
   @Override
   public void periodic() {

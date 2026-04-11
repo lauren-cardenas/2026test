@@ -22,9 +22,9 @@ public class IntakeSubsystem extends SubsystemBase {
     TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.StatorCurrentLimit = 50;
+    config.CurrentLimits.StatorCurrentLimit = 60;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 50;
+    config.CurrentLimits.SupplyCurrentLimit = 60;
 
     m_rollerMotor.getConfigurator().apply(config);
   }
