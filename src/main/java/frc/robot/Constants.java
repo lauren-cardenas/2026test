@@ -55,7 +55,7 @@ public final class Constants {
     public static final double kShooterSpeed = 0.60; //manual speed
     public static final double kTargetVelocity = 8; //target velocity for motion magic in rps
     public static final double kMaxSpeed = 45; //in rps (?)
-    public static final double kAutoVelocity = 29;
+    public static final double kAutoVelocity = 28;
     public static final double kTrenchVelocity = 38;
 
     //Intake

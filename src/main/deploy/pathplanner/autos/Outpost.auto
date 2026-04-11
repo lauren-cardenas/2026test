@@ -169,6 +169,12 @@
                 "data": {
                   "waitTime": 0.15
                 }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Rollers"
+                }
               }
             ]
           }

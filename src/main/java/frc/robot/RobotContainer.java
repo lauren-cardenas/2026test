@@ -79,7 +79,7 @@ private final CommandXboxController m_driverController =
       
         configureBindings();
 
-      autoChooser = AutoBuilder.buildAutoChooser("help");
+      autoChooser = AutoBuilder.buildAutoChooser("Outpost");
       SmartDashboard.putData("Auto Mode", autoChooser);
       CommandScheduler.getInstance().schedule(FollowPathCommand.warmupCommand());
 
